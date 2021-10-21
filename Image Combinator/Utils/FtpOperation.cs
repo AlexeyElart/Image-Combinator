@@ -15,9 +15,6 @@ namespace Image_Combinator.Utils
             Stream stream = File.OpenRead("ec2-efsuser.pem");
             var privateKey = new PrivateKeyFile(stream);
             client = new SftpClient(ftpServer, "ec2-efsuser", new[] { privateKey });
-            //client.KeepAliveInterval = new TimeSpan(0, 30, 0);
-
-            //client.ConnectionInfo.Timeout = new TimeSpan(0, 5, 0);
             client.Connect();
         }
 

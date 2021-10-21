@@ -188,7 +188,7 @@ namespace Image_Combinator
             foreach (string ebayItemID in dataFromDB)
             {
                 CreateMainPictureByEbayItenID(conn, ebayItemID, pictureTemplate, ftpClient);
-                this.Invoke(new Action(() => SendText($"Created {ebayItemID}\n")));              
+                this.Invoke(new Action(() => SendText($"Created {ebayItemID}\n")));
                 backgroundWorker1.ReportProgress(10);
             }
         }
@@ -199,15 +199,9 @@ namespace Image_Combinator
                                             "join Elart.BrandPicrureTemplates BPT on SD.supplier_id = BPT.TecdocSupplierID " +
                                             $"where SD.asvela_sku = '{sku}' and BPT.ShopID = {shopID}; ").FirstOrDefault();
 
-
-
             if (res == null)
             {
                 this.Invoke(new Action(() => SendText($"template not found for {sku}\n")));
-                //lock (locker)
-                //{
-                //    File.AppendAllText("error.txt", $"template not found for {sku}\n");
-                //}
                 return;
             }
             PictureTemplate pictureTemplate = PictureTemplate.GetTemplateFromByte(res);
@@ -236,7 +230,6 @@ namespace Image_Combinator
             {
                 string pathImage = GetPathImageBySku(conn, sku, out brandID, out nameForFtp, out itemID);
 
-                //this.Invoke(new Action(() => SendText($"get image path {Task.CurrentId.Value} \n")));
                 if (nameForFtp == "" || brandID == 0)
                     return;
 
@@ -245,7 +238,7 @@ namespace Image_Combinator
                 IMAGE_SIZE = CELL_SIZE * GRID_SIZE;
 
                 string partNumber = GetPartNumberBySku(conn, sku);
-                //this.Invoke(new Action(() => SendText($"get partNumber {Task.CurrentId.Value} \n")));
+
                 string brandPath;
                 if (brandID == 4460 && (partNumber.Contains("XP") || partNumber.Contains("HP")))
                 {
@@ -253,7 +246,14 @@ namespace Image_Combinator
                 }
                 else
                 {
-                    brandPath = "E:\\tecdoc1q2018\\TecDoc\\images\\Logo\\" + brandID + ".png";
+                    if (brandID == 432 && (sku.Contains("MS") || sku.Contains("CB") || sku.Contains("TW")))
+                    {
+                        brandPath = "E:\\tecdoc1q2018\\TecDoc\\images\\Logo\\" + brandID + "_1.png";
+                    }
+                    else
+                    {
+                        brandPath = "E:\\tecdoc1q2018\\TecDoc\\images\\Logo\\" + brandID + ".png";
+                    }
                 }
 
                 int logoNumb = 0;
@@ -311,11 +311,7 @@ namespace Image_Combinator
                 if (brandID == 4865)
                 {
                     int countInSet = 0;
-                    //if (groupSetIDs.Contains(Convert.ToInt64(ebayItemID)))
-                    //{
-                    //    countInSet = GetGSCount(conn, ebayItemID);
-                    //}
-                    //else
+
                     {
                         countInSet = skuCyl_HUST_Pair[sku];
                     }
@@ -381,6 +377,9 @@ namespace Image_Combinator
                                             break;
                                         case 2:
                                             genericPath = "E:\\Generic Images\\Generic_image_couk2.png";
+                                            break;
+                                        case 3:
+                                            genericPath = "E:\\Generic Images\\Generic image_com.png";
                                             break;
                                         case 4:
                                             genericPath = "E:\\Generic Images\\Generic_DE.png";
@@ -540,6 +539,15 @@ namespace Image_Combinator
                     $"where SD.asvela_sku = '{sku}'; ";
             var res2 = conn.Query<(string, int, int)>(que).FirstOrDefault();
 
+            if (res2.Item1 == null && res2.Item2 == 0 && res2.Item3 == 0)
+            {
+                que = "select GD.graphic_file_number, SD.supplier_id, GD.doc_key from asvela.supplier_data SD " +
+                    "join ElartTecDoc.Allocation_of_Graphics_to_Article_Numbers AGAN on SD.tecdoc_number = AGAN.man_article_number and SD.supplier_id = AGAN.supplier_id and AGAN.sort_key = 1 " +
+                    "join ElartTecDoc.Graphics_and_Documents GD on AGAN.graphic_number = GD.graphic_number and (GD.doc_key = 1 or GD.doc_key = 3 or GD.doc_key = 6) " +
+                    $"where SD.asvela_sku = '{sku}'; ";
+                res2 = conn.Query<(string, int, int)>(que).FirstOrDefault();
+            }
+
             brandID = res2.Item2 != 0 ? res2.Item2 : conn.Query<int>($"select SD.supplier_id from asvela.supplier_data SD where SD.asvela_sku = '{sku}';").FirstOrDefault();
 
             if (brandID == 30 && res2.Item1 != null && !res2.Item1.Contains(sku.Replace("BOSCH", "")))
@@ -547,7 +555,7 @@ namespace Image_Combinator
                 que = "select GD.graphic_file_number, SD.supplier_id, GD.doc_key from asvela.supplier_data SD " +
                     "join Temp.Allocation_of_Graphics_to_Article_Numbers AGAN on SD.tecdoc_number = AGAN.man_article_number and SD.supplier_id = AGAN.supplier_id and AGAN.sort_key = 2 " +
                     "join Temp.Graphics_Documents GD on AGAN.graphic_number = GD.graphic_number and (GD.doc_key = 1 or GD.doc_key = 3) " +
-                    $"where SD.asvela_sku = '{sku}'; ";
+                    $"where SD.asvela_sku = '{sku}' order by AGAN.sort_key; ";
                 res2 = conn.Query<(string, int, int)>(que).FirstOrDefault();
 
                 if (res2.Item1 != null && !res2.Item1.Contains(sku.Replace("BOSCH", "")))
@@ -555,7 +563,7 @@ namespace Image_Combinator
                     que = "select GD.graphic_file_number, SD.supplier_id, GD.doc_key from asvela.supplier_data SD " +
                         "join Temp.Allocation_of_Graphics_to_Article_Numbers AGAN on SD.tecdoc_number = AGAN.man_article_number and SD.supplier_id = AGAN.supplier_id and AGAN.sort_key = 3 " +
                         "join Temp.Graphics_Documents GD on AGAN.graphic_number = GD.graphic_number and (GD.doc_key = 1 or GD.doc_key = 3) " +
-                        $"where SD.asvela_sku = '{sku}'; ";
+                        $"where SD.asvela_sku = '{sku}' order by AGAN.sort_key; ";
                     res2 = conn.Query<(string, int, int)>(que).FirstOrDefault();
 
                     if (res2.Item1 != null && !res2.Item1.Contains(sku.Replace("BOSCH", "")))
@@ -576,19 +584,6 @@ namespace Image_Combinator
             try
             {
 
-                //switch (res2.Item3)
-                //{
-                //    case 1:
-                //        fileExtention = ".BMP";
-                //        break;
-                //    case 3:
-                //        fileExtention = ".JPG";
-                //        break;
-                //    default:
-                //        fileExtention = ".JPG";
-                //        break;
-                //}
-
                 nameForFtp = res2.Item1 == null ? nameForFtp : nameForFtp + res2.Item1.Trim();
                 if (pictureInDB.Any(p => p.ItemID == localItemID && p.ShopID == shopID))
                 {
@@ -596,7 +591,7 @@ namespace Image_Combinator
                     nameForFtp += $"_ver{version + 1}";
                 }
 
-                fileName = res2.Item1 == null ? "" : res2.Item1.Trim();
+                fileName = res2.Item1 == null || res2.Item1 == "MS_120000316001" ? "" : res2.Item1.Trim();
 
                 switch (res2.Item3)
                 {
@@ -605,6 +600,15 @@ namespace Image_Combinator
                         break;
                     case 3:
                         fileExtention = ".JPG";
+                        break;
+                    case 5:
+                        fileExtention = ".JPG";
+                        break;
+                    case 6:
+                        fileExtention = ".PNG";
+                        break;
+                    case 7:
+                        fileExtention = ".GIF";
                         break;
                     default:
                         fileExtention = ".JPG";
@@ -651,10 +655,14 @@ namespace Image_Combinator
 
                 string localSku = sku;
                 int localBtandID = brandID;
-                //if (badFiles.Any(f => f.brandID == localBtandID && f.sku == localSku))
-                //{
-                //    fileName = "";
-                //}
+
+                if (brandID != 30)
+                {
+                    if (badFiles.Any(f => f.brandID == localBtandID && f.sku == localSku))
+                    {
+                        fileName = "";
+                    }
+                }
 
 
             }
@@ -667,7 +675,6 @@ namespace Image_Combinator
 
         private void CreateMainPictureByEbayItenID(MySqlConnection conn, string ebayItemID, PictureTemplate pictureTemplate, FtpOperation ftpClient)
         {
-            //FtpOperation ftpClient = new FtpOperation();
             int brandID;
             long itemID;
             string nameForFtp;
@@ -697,13 +704,21 @@ namespace Image_Combinator
                 IMAGE_SIZE = CELL_SIZE * GRID_SIZE;
 
                 string brandPath;
+
                 if (brandID == 4460 && (partNumber.Contains("XP") || partNumber.Contains("HP")))
                 {
                     brandPath = "E:\\tecdoc1q2018\\TecDoc\\images\\Logo\\" + brandID + "_2.png";
                 }
                 else
                 {
-                    brandPath = "E:\\tecdoc1q2018\\TecDoc\\images\\Logo\\" + brandID + ".png";
+                    if (brandID == 432 && (sku.Contains("MS") || sku.Contains("CB") || sku.Contains("TW")))
+                    {
+                        brandPath = "E:\\tecdoc1q2018\\TecDoc\\images\\Logo\\" + brandID + "_1.png";
+                    }
+                    else
+                    {
+                        brandPath = "E:\\tecdoc1q2018\\TecDoc\\images\\Logo\\" + brandID + ".png";
+                    }
                 }
 
                 int logoNumb = 0;
@@ -862,47 +877,51 @@ namespace Image_Combinator
                                     }
                                     elements.Add(new PictureElement(GRID_SIZE, CELL_SIZE, actualImgPath, pictureTemplate.GenericImage.Width, pictureTemplate.GenericImage.Height, pictureTemplate.GenericImage.Anchor));
                                 }
-                                if (groupSetIDs.Contains(ebayItemID))
-                                {
-                                    int countInGS = GetGSCount(conn, ebayItemID);
-                                    string countPath = $"E:\\Generic Images\\{countInGS}pcs.png";
-                                    elements.Add(new PictureElement(GRID_SIZE, CELL_SIZE, countPath, pictureTemplate.Count.Width, pictureTemplate.Count.Height, pictureTemplate.Count.Anchor));
-                                }
+
                             }
-                        }
 
-                        List<Point> boundingPoints = GetBoundingPoints(elements);
-
-                        Point center = new Point(IMAGE_SIZE / 2, (int)Math.Round(IMAGE_SIZE / 2 * pictureTemplate.BaseImage.VerticalPositionKoef / 100.0, 0));
-
-                        double minDistanceToBoundingPoint = GetMinDistanceToPoint(center, boundingPoints);
-
-
-                        PictureElement tmpBase = new PictureElement(pathImage, center, minDistanceToBoundingPoint, pictureTemplate.BaseImage.SizeKoef, watermarkPath, pictureTemplate.Watermark.TransparencyLevel, pictureTemplate.Watermark.PercentSizeBaseImage / 100.0);
-                        elements.Add(tmpBase);
-                        MagickImage result = CompositeResult(elements);
-
-                        byte[] byteArr = result.ToByteArray(MagickFormat.Jpg);
-                        lock (locker)
-                        {
-                            if (nameForFtp.Contains("_ver"))
-                            {
-                                string pathForDelete = pictureInDB.Where(p => p.ItemID == itemID && p.ShopID == shopID).Select(p => p.URL).FirstOrDefault();
-                                pathForDelete = "/var/www/html" + pathForDelete.Replace("https://shop.elartcom.eu", "");
-                                try
-                                {
-                                    ftpClient.Delete(pathForDelete);
-                                }
-                                catch
-                                {
-                                    File.AppendAllText("error.txt", $"File for delete on FTP ({pathForDelete}) not found \n");
-                                }
-                            }
-                            string pathFTP = ftpClient.Upload(byteArr, nameForFtp, brandID, shopID);
-                            SavePictureToDB(conn, itemID, shopID, pathFTP);
                         }
                     }
                 }
+                if (groupSetIDs.Contains(ebayItemID))
+                {
+                    int countInGS = GetGSCount(conn, ebayItemID);
+                    string countPath = $"E:\\Generic Images\\{countInGS}pcs.png";
+                    elements.Add(new PictureElement(GRID_SIZE, CELL_SIZE, countPath, pictureTemplate.Count.Width, pictureTemplate.Count.Height, pictureTemplate.Count.Anchor));
+                }
+
+                List<Point> boundingPoints = GetBoundingPoints(elements);
+
+                Point center = new Point(IMAGE_SIZE / 2, (int)Math.Round(IMAGE_SIZE / 2 * pictureTemplate.BaseImage.VerticalPositionKoef / 100.0, 0));
+
+                double minDistanceToBoundingPoint = GetMinDistanceToPoint(center, boundingPoints);
+
+
+                PictureElement tmpBase = new PictureElement(pathImage, center, minDistanceToBoundingPoint, pictureTemplate.BaseImage.SizeKoef, watermarkPath, pictureTemplate.Watermark.TransparencyLevel, pictureTemplate.Watermark.PercentSizeBaseImage / 100.0);
+                elements.Add(tmpBase);
+                MagickImage result = CompositeResult(elements);
+
+                byte[] byteArr = result.ToByteArray(MagickFormat.Jpg);
+                lock (locker)
+                {
+                    if (nameForFtp.Contains("_ver"))
+                    {
+                        string pathForDelete = pictureInDB.Where(p => p.ItemID == itemID && p.ShopID == shopID).Select(p => p.URL).FirstOrDefault();
+                        pathForDelete = "/var/www/html" + pathForDelete.Replace("https://shop.elartcom.eu", "");
+                        try
+                        {
+                            ftpClient.Delete(pathForDelete);
+                        }
+                        catch
+                        {
+                            File.AppendAllText("error.txt", $"File for delete on FTP ({pathForDelete}) not found \n");
+                        }
+                    }
+                    string pathFTP = ftpClient.Upload(byteArr, nameForFtp, brandID, shopID);
+                    SavePictureToDB(conn, itemID, shopID, pathFTP);
+                }
+
+                //}
             }
             catch (Exception exc)
             {
@@ -1095,7 +1114,7 @@ namespace Image_Combinator
             MagickImage image = new MagickImage(MagickColor.FromRgb(255, 255, 255), IMAGE_SIZE, IMAGE_SIZE);
 
             PictureElement baseImg = elements.Where(e => e.Anchor == AnchorType.Center).FirstOrDefault();
-            
+
 
             image.Composite(baseImg.Image, baseImg.StartPoint.X, baseImg.StartPoint.Y);
 
@@ -1206,6 +1225,15 @@ namespace Image_Combinator
                     $"where SD.asvela_sku = '{sku}'; ";
             var res2 = conn.Query<(string, int, int)>(que).FirstOrDefault();
 
+            if (res2.Item1 == null && res2.Item2 == 0 && res2.Item3 == 0)
+            {
+                que = "select GD.graphic_file_number, SD.supplier_id, GD.doc_key from asvela.supplier_data SD " +
+                    "join ElartTecDoc.Allocation_of_Graphics_to_Article_Numbers AGAN on SD.tecdoc_number = AGAN.man_article_number and SD.supplier_id = AGAN.supplier_id and AGAN.sort_key = 1 " +
+                    "join ElartTecDoc.Graphics_and_Documents GD on AGAN.graphic_number = GD.graphic_number and (GD.doc_key = 1 or GD.doc_key = 3 or GD.doc_key = 6) " +
+                    $"where SD.asvela_sku = '{sku}'; ";
+                res2 = conn.Query<(string, int, int)>(que).FirstOrDefault();
+            }
+
             brandID = res2.Item2 != 0 ? res2.Item2 : conn.Query<int>($"select SD.supplier_id from Elart.ShopItems SI " +
                 $"join Elart.Items I on SI.ItemID = I.ID join asvela.supplier_data SD on LEFT(I.SKU, locate(\"_\", I.SKU)-1) = SD.asvela_sku " +
                 $"where SI.EbayItemID = '{ebayItemID}' " +
@@ -1252,6 +1280,15 @@ namespace Image_Combinator
                 case 3:
                     fileExtention = ".JPG";
                     break;
+                case 5:
+                    fileExtention = ".JPG";
+                    break;
+                case 6:
+                    fileExtention = ".PNG";
+                    break;
+                case 7:
+                    fileExtention = ".GIF";
+                    break;
                 default:
                     fileExtention = ".JPG";
                     break;
@@ -1282,7 +1319,7 @@ namespace Image_Combinator
 
             //itemID = res.Item4;
             //sku = res.Item3;
-            string fileName = res2.Item1 == null ? "" : res2.Item1.Trim();
+            string fileName = res2.Item1 == null || res2.Item1 == "MS_120000316001" ? "" : res2.Item1.Trim();
             switch (res2.Item3)
             {
                 case 1:
@@ -1290,6 +1327,15 @@ namespace Image_Combinator
                     break;
                 case 3:
                     fileExtention = ".JPG";
+                    break;
+                case 5:
+                    fileExtention = ".JPG";
+                    break;
+                case 6:
+                    fileExtention = ".PNG";
+                    break;
+                case 7:
+                    fileExtention = ".GIF";
                     break;
                 default:
                     fileExtention = ".JPG";
@@ -1342,10 +1388,13 @@ namespace Image_Combinator
 
             string localSku = sku;
             int localBtandID = brandID;
-            //if (badFiles.Any(f => f.brandID == localBtandID && f.sku == localSku))
-            //{
-            //    fileName = "";
-            //}
+            if (brandID != 30)
+            {
+                if (badFiles.Any(f => f.brandID == localBtandID && f.sku == localSku))
+                {
+                    fileName = "";
+                }
+            }
 
 
 
@@ -1494,7 +1543,7 @@ namespace Image_Combinator
 
                 //dataFromDB = dataFromDB.Take(100).ToList();
 
-                //dataFromDB = dataFromDB.Where(d => d == "402508681856").ToList();
+                //dataFromDB = dataFromDB.Where(d => d == "353640273288").ToList();
 
                 this.Invoke(new Action(() => SendText($"Listings count: {dataFromDB.Count}\n")));
 
@@ -1512,32 +1561,32 @@ namespace Image_Combinator
                 List<Task> tasks = new List<Task>();
                 List<MySqlConnection> listConn = new List<MySqlConnection>();
 
-                if (dataFromDB.Count < threadsCount)
+                //if (dataFromDB.Count < threadsCount)
                 {
                     MySqlConnection localConn = (MySqlConnection)conn.Clone();
                     CreatePictureInThread(localConn, dataFromDB, pictureTemplate);
                     listConn.Add(localConn);
                 }
-                else
-                {
-                    List<string>[] listsForTheads = new List<string>[threadsCount];
-                    for (int i = 0; i < dataFromDB.Count; i++)
-                    {
-                        if (i < threadsCount)
-                        {
-                            listsForTheads[i] = new List<string>();
-                        }
-                        listsForTheads[i % threadsCount].Add(dataFromDB[i]);
-                    }
+                //else
+                //{
+                //    List<string>[] listsForTheads = new List<string>[threadsCount];
+                //    for (int i = 0; i < dataFromDB.Count; i++)
+                //    {
+                //        if (i < threadsCount)
+                //        {
+                //            listsForTheads[i] = new List<string>();
+                //        }
+                //        listsForTheads[i % threadsCount].Add(dataFromDB[i]);
+                //    }
 
-                    for (int j = 0; j < threadsCount; j++)
-                    {
-                        List<string> lstr = listsForTheads[j];
-                        MySqlConnection localConn = (MySqlConnection)conn.Clone();
-                        tasks.Add(Task.Run(() => CreatePictureInThread(localConn, lstr, pictureTemplate)));
-                        listConn.Add(localConn);
-                    }
-                }
+                //    for (int j = 0; j < threadsCount; j++)
+                //    {
+                //        List<string> lstr = listsForTheads[j];
+                //        MySqlConnection localConn = (MySqlConnection)conn.Clone();
+                //        tasks.Add(Task.Run(() => CreatePictureInThread(localConn, lstr, pictureTemplate)));
+                //        listConn.Add(localConn);
+                //    }
+                //}
                 Task.WaitAll(tasks.ToArray());
                 foreach (var localConn in listConn)
                 {
@@ -1578,7 +1627,9 @@ namespace Image_Combinator
         private void backgroundWorker2_DoWork(object sender, DoWorkEventArgs e)
         {
             List<string> skuFromFiles = e.Argument as List<string>;
-
+            //#######
+            //skuFromFiles = new List<string> { skuFromFiles.FirstOrDefault() };
+            //#######
 
             this.Invoke(new Action(() => SetProgressBar(skuFromFiles.Count)));
             using (MySqlConnection conn = new MySqlConnection(connectionString))

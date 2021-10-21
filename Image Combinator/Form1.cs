@@ -275,7 +275,7 @@ namespace Image_Combinator
         {
             using (OpenFileDialog openFileDialog = new OpenFileDialog())
             {
-                openFileDialog.InitialDirectory = "E:\\Done Programm\\UM";
+                openFileDialog.InitialDirectory = "E:\\tecdoc1q2018\\TecDoc\\images\\Logo";
                 openFileDialog.Filter = "Image Files(*.BMP;*.JPG;*.GIF)|*.BMP;*.JPG;*.PNG|All files (*.*)|*.*";
                 openFileDialog.FilterIndex = 2;
                 openFileDialog.RestoreDirectory = true;
@@ -309,7 +309,7 @@ namespace Image_Combinator
         {
             using (OpenFileDialog openFileDialog = new OpenFileDialog())
             {
-                openFileDialog.InitialDirectory = "E:\\Done Programm\\UM";
+                openFileDialog.InitialDirectory = "E:\\TecDocs\\2104\\PIC_FILES";
                 openFileDialog.Filter = "Image Files(*.BMP;*.JPG;*.GIF)|*.BMP;*.JPG;*.PNG|All files (*.*)|*.*";
                 openFileDialog.FilterIndex = 2;
                 openFileDialog.RestoreDirectory = true;
@@ -822,9 +822,9 @@ namespace Image_Combinator
                     }
                 }
                 var tmpPair = conn.Query<(int, int)>($"SELECT ItemID, ShopID FROM Elart.ShopItems where EbayItemID = '{textBox4.Text}';").FirstOrDefault();
-                conn.Execute($"update Elart.ShopItemPicturesStatuses set IsActual = 0 where ItemID = {tmpPair.Item1} and ShopID = {tmpPair.Item2};");
-                conn.Execute($"update Elart.ShopItemMainPictures set IsActual = 0 where ItemID = {tmpPair.Item1} and ShopID = {tmpPair.Item2};");
-                MessageBox.Show("Succes. Status of listings pictures is not actual now");
+                int statusesCount = conn.Execute($"update Elart.ShopItemPicturesStatuses set IsActual = 0 where ItemID = {tmpPair.Item1};");
+                int picturesCount = conn.Execute($"update Elart.ShopItemMainPictures set IsActual = 0 where ItemID = {tmpPair.Item1};");
+                MessageBox.Show($"Succes. Status of ({statusesCount}) listing's pictures and ({picturesCount}) pictures is not actual now");
                 conn.Close();
             }
         }
