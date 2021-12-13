@@ -5,6 +5,13 @@ namespace Image_Combinator
 {
     class PictureElement : ICloneable
     {
+        public Point StartPoint { get; set; }
+        public Point EndPoint { get; set; }
+        public MagickImage Image { get; set; }
+        public AnchorType Anchor { get; set; }
+        public int CellWidth { get; set; }
+        public int CellHeight { get; set; }
+
         public PictureElement()
         {
 
@@ -55,7 +62,6 @@ namespace Image_Combinator
 
                 Image.Composite(watermark, Gravity.Northwest, CompositeOperator.Over);
             }
-            //image.Write("2.jpg");
         }
 
         public PictureElement(int gridSize, int cellSize, string path, int cellWidth, int cellHeight, AnchorType anchor)
@@ -236,14 +242,7 @@ namespace Image_Combinator
                 Anchor = this.Anchor
             };
         }
-
-
-        public Point StartPoint { get; set; }
-        public Point EndPoint { get; set; }
-        public MagickImage Image { get; set; }
-        public AnchorType Anchor { get; set; }
-        public int CellWidth { get; set; }
-        public int CellHeight { get; set; }
+       
     }
 
     public enum AnchorType

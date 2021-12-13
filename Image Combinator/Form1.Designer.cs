@@ -108,6 +108,7 @@
             this.button12 = new System.Windows.Forms.Button();
             this.textBox4 = new System.Windows.Forms.TextBox();
             this.label33 = new System.Windows.Forms.Label();
+            this.buttonPictWithWatermark = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBar1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBar2)).BeginInit();
@@ -879,6 +880,7 @@
             // 
             // tabPage2
             // 
+            this.tabPage2.Controls.Add(this.buttonPictWithWatermark);
             this.tabPage2.Controls.Add(this.button15);
             this.tabPage2.Controls.Add(this.pictureBox3);
             this.tabPage2.Controls.Add(this.dataGridViewException);
@@ -983,6 +985,16 @@
             this.label33.Size = new System.Drawing.Size(109, 20);
             this.label33.TabIndex = 0;
             this.label33.Text = "EbayItemID:";
+            // 
+            // buttonPictWithWatermark
+            // 
+            this.buttonPictWithWatermark.Location = new System.Drawing.Point(40, 583);
+            this.buttonPictWithWatermark.Name = "buttonPictWithWatermark";
+            this.buttonPictWithWatermark.Size = new System.Drawing.Size(127, 22);
+            this.buttonPictWithWatermark.TabIndex = 9;
+            this.buttonPictWithWatermark.Text = "Create pictures";
+            this.buttonPictWithWatermark.UseVisualStyleBackColor = true;
+            this.buttonPictWithWatermark.Click += new System.EventHandler(this.buttonPictWithWatermark_Click);
             // 
             // Form1
             // 
@@ -1093,6 +1105,7 @@
         private System.Windows.Forms.PictureBox pictureBox3;
         private System.Windows.Forms.Button button14;
         private System.Windows.Forms.Button button15;
+        private System.Windows.Forms.Button buttonPictWithWatermark;
     }
 }
 

@@ -346,11 +346,6 @@ namespace Image_Combinator
             string generic = label5.Text;
             string SaveImagePath = "\\tmp\\";
 
-            //string[] filesPic = Directory.GetFiles("E:\\Done Programm\\UM\\Generic");
-
-            //foreach (string pathLoc in filesPic)
-            //{
-
                 List<PictureElement> elements = new List<PictureElement>();
                 elements.Add(new PictureElement(GRID_SIZE, CELL_SIZE, label2.Text, (int)comboBox2.SelectedItem, (int)comboBox3.SelectedItem, (AnchorType)comboBox1.SelectedItem));
                 elements.Add(new PictureElement(GRID_SIZE, CELL_SIZE, label3.Text, (int)comboBox5.SelectedItem, (int)comboBox4.SelectedItem, (AnchorType)comboBox6.SelectedItem));
@@ -826,6 +821,43 @@ namespace Image_Combinator
                 int picturesCount = conn.Execute($"update Elart.ShopItemMainPictures set IsActual = 0 where ItemID = {tmpPair.Item1};");
                 MessageBox.Show($"Succes. Status of ({statusesCount}) listing's pictures and ({picturesCount}) pictures is not actual now");
                 conn.Close();
+            }
+        }
+
+        private void buttonPictWithWatermark_Click(object sender, EventArgs e)
+        {
+            var files = Directory.GetFiles("E:\\Images\\Cars's_Models");
+
+            string logoPath = "E:\\tecdoc1q2018\\TecDoc\\images\\Logo\\logo1.PNG";
+
+            foreach (string filePath in files)
+            {
+                MagickImage image = new MagickImage(filePath);
+
+                MagickImage watermark = new MagickImage(logoPath);
+
+                watermark.Alpha(AlphaOption.Set);
+                //watermark.Rotate(45);
+                watermark.ColorFuzz = new Percentage(20);
+                watermark.Opaque(MagickColors.White, MagickColor.FromRgba(0, 0, 0, 0));
+                
+
+                if (image.Width / (double)image.Height > 1)
+                {
+                    watermark.Resize((int)(image.Width * 0.5), watermark.Height * (int)(image.Width * 0.5) / watermark.Width);
+                }
+                else
+                {
+                    watermark.Resize(image.Width * (int)(image.Height * 0.5) / watermark.Height, (int)(watermark.Height * 0.5));
+                }
+
+                watermark.Evaluate(Channels.Alpha, EvaluateOperator.Divide, 1.5);
+                image.Composite(watermark, Gravity.Southwest, CompositeOperator.Over);
+                image.Composite(watermark, Gravity.Northeast, CompositeOperator.Over);
+
+                string resultPath = filePath.Replace("Cars's_Models", "Cars's_Models _Waternark");
+
+                image.Write(resultPath);
             }
         }
     }
